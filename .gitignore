@@ -1,0 +1,17 @@
+# Data folder
+UKDA-5340-tab/
+
+# Python environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
