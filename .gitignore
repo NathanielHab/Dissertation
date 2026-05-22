@@ -1,6 +1,9 @@
 # Data folder
 UKDA-5340-tab/
 
+#Test files
+test_output.csv
+
 # Python environment
 venv/
 

@@ -14,6 +14,7 @@ def load_nts_data(
     end_year: int = 2024,
     nrows: Optional[int] = 1000  #CHANGE TO None for full dataset
 ) -> pd.DataFrame:
+    """Load NTS data from a tab-delimited file, filtering by year range and selected columns."""
     
     year_col = 'SurveyYear'
     
@@ -36,11 +37,26 @@ def load_nts_data(
     
     return df
 
+def merge_nts_data(
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+    on: str,
+    how: str = 'left'
+) -> pd.DataFrame:
+    """Merge two NTS DataFrames on a specified column, avoiding duplicate columns."""
+    
+    merged = df1.merge(df2, on=on, how=how)
+    #merged = merged[[col for col in merged.columns if not col.endswith('_drop')]]
+    
+    return merged
+
 #timer
 start_time = time.time()
 
 # Load trip data
-#####df = load_nts_data('trip_eul_2002-2024.tab', nrows=500000, columns=['SurveyYear'])  # Load first 1000 rows for testing
+#df_trip = load_nts_data('trip_eul_2002-2024.tab', nrows=300000)  # Load first 50000 rows for testing
+#df_day = load_nts_data('day_eul_2002-2024.tab', nrows=None)  # Load all rows
+#df = merge_nts_data(df_trip, df_day, on='DayID')
 # df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab',
 #                  sep='\t',
 #                  nrows=5,
@@ -50,16 +66,21 @@ start_time = time.time()
 
 
 # Display
-# print(df.info()) 
-# print(df.head())
-# print(df.columns.tolist())
+df = pd.read_csv('test_output.csv')  # Use 'python' engine for better handling of large files and complex parsing
+print(df.info()) 
+print(df.head())
+print(df['W5xHH'])
+#print(df.columns.tolist())
+#df.to_csv('test_output.csv', index=False)
 
 # Will need vm to run code below to convert to parquet format, as the csv is too large to load into memory
 # Should be done for all necessary files to speed up future loading and analysis
 
-df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab', 
-                 sep='\t', 
-                 engine='python')
-df.to_parquet(DATA_DIR / 'trip_eul_2002-2024.parquet')
-print('Done')
+
+#TO CONVERT TO PARQUET (UNCOMMENT TO RUN)
+# df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab', 
+#                  sep='\t', 
+#                  engine='python')
+# df.to_parquet(DATA_DIR / 'trip_eul_2002-2024.parquet')
+# print('Done')
 print("--- %s seconds ---" % (time.time() - start_time))
