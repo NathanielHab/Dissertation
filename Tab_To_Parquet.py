@@ -2,6 +2,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional
 import time
+import warnings
 
 
 # Define the base data folder relative to where the script is
@@ -47,6 +48,30 @@ def merge_nts_data(
     
     merged = df1.merge(df2, on=on, how=how)
     #merged = merged[[col for col in merged.columns if not col.endswith('_drop')]]
+
+
+    # Identify columns that have been duplicated with _x and _y suffixes
+    x_cols = [col for col in merged.columns if col.endswith('_x')]
+
+    for col in x_cols:
+        base = col[:-2]  # remove '_x'
+        y_col = base + '_y'
+        
+        if y_col in merged.columns:
+            match = merged[col].equals(merged[y_col])
+            if match:
+                # If they match, keep one and drop the other
+                merged = merged.drop(columns=[y_col])
+            else:
+                warnings.warn(f"Warning: Columns '{col}' and '{y_col}' do not match. Keeping both with suffixes.")
+            #     # If they don't match, keep both but rename to avoid confusion
+            #     merged = merged.rename(columns={col: base + '_x', y_col: base + '_y'})
+    
+    # Drop _y columns
+    #merged = merged[[col for col in merged.columns if not col.endswith('_y')]]
+
+    # Remove _x suffix from remaining columns
+    merged.columns = [col.replace('_x', '') for col in merged.columns]
     
     return merged
 
@@ -54,9 +79,9 @@ def merge_nts_data(
 start_time = time.time()
 
 # Load trip data
-#df_trip = load_nts_data('trip_eul_2002-2024.tab', nrows=300000)  # Load first 50000 rows for testing
-#df_day = load_nts_data('day_eul_2002-2024.tab', nrows=None)  # Load all rows
-#df = merge_nts_data(df_trip, df_day, on='DayID')
+df_trip = load_nts_data('trip_eul_2002-2024.tab', nrows=1000)  # Load first 50000 rows for testing
+df_day = load_nts_data('day_eul_2002-2024.tab', nrows=None)  # Load all rows
+df = merge_nts_data(df_trip, df_day, on='DayID')
 # df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab',
 #                  sep='\t',
 #                  nrows=5,
@@ -66,12 +91,12 @@ start_time = time.time()
 
 
 # Display
-df = pd.read_csv('test_output.csv')  # Use 'python' engine for better handling of large files and complex parsing
+#df = pd.read_csv('test_output.csv')  # Use 'python' engine for better handling of large files and complex parsing
 print(df.info()) 
 print(df.head())
-print(df['W5xHH'])
+#print(df['W5xHH'])
 #print(df.columns.tolist())
-#df.to_csv('test_output.csv', index=False)
+df.to_csv('test_output.csv', index=False)
 
 # Will need vm to run code below to convert to parquet format, as the csv is too large to load into memory
 # Should be done for all necessary files to speed up future loading and analysis
