@@ -66,7 +66,8 @@ def load_nts_data(
         df = apply_column_types(df, column_types)
         print(f"Applied column types in {time.time() - START_TIME} seconds")
 
-    if start_year != 2002 and end_year != 2024:
+    if start_year != 2002 or end_year != 2024:
+        print(f"Filtering data for years {start_year} to {end_year}...")
         df = df[(df[year_col] >= start_year) & (df[year_col] <= end_year)]
 
     if nrows is not None:
