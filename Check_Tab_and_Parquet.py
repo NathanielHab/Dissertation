@@ -35,30 +35,9 @@ def Check_Tab_and_Parquet(filename: str, column_types: dict) -> None:
     # 4. Align column order
     df_parquet = df_parquet[df_tab.columns]
 
-    # 5. Fix problem columns explicitly first
-    # Set column types for both files to match, So comparison can be done
+    # 5. Set column types for both files to match, So comparison can be done
     apply_column_types(df_tab, column_types)
     apply_column_types(df_parquet, column_types)
-
-    # problem_cols_int = ['TripStartHours', 'TripStartMinutes', 'TripStart']
-    # problem_cols_float = ['W5', 'W5xHH']
-
-    # for col in problem_cols_int + problem_cols_float:
-    #     df_tab[col] = df_tab[col].astype(str).str.strip().replace('', pd.NA)
-
-    # for col in problem_cols_int:
-    #     df_tab[col] = pd.to_numeric(df_tab[col], errors='coerce').astype('Int64')
-
-    # for col in problem_cols_float:
-    #     df_tab[col] = pd.to_numeric(df_tab[col], errors='coerce')
-
-    # # Then convert remaining columns to match parquet dtypes
-    # for col in df_tab.columns:
-    #     if col not in problem_cols_int + problem_cols_float:
-    #         try:
-    #             df_tab[col] = df_tab[col].astype(df_parquet[col].dtype)
-    #         except Exception as e:
-    #             print(f'Could not convert {col}: {e}')
 
     # 6. Compare
     diff = df_tab.compare(df_parquet, result_names=('tab', 'parquet'))

@@ -1,5 +1,3 @@
-from ast import If
-
 import pandas as pd
 from pathlib import Path
 from typing import Optional
@@ -49,8 +47,10 @@ def load_nts_data(
     parquet_filename = Path(filename).with_suffix('.parquet')
     parquet_path = DATA_DIR / parquet_filename
 
-    if parquet_path.exists() and not True:
+    if parquet_path.exists():
+        print(f"Loading from parquet: {parquet_filename}")
         df = pd.read_parquet(parquet_path, columns=cols_to_load)
+        print(f"Loaded parquet in {time.time() - START_TIME} seconds")
     elif nrows is not None:
         # If nrows is specified, we can load directly with pandas (assuming it's not too large)
         df = pd.read_csv(DATA_DIR / filename,
@@ -62,7 +62,9 @@ def load_nts_data(
         df = load_chunks(filename)
 
     if column_types is not None:
+        print("Applying column types...")
         df = apply_column_types(df, column_types)
+        print(f"Applied column types in {time.time() - START_TIME} seconds")
 
     if start_year != 2002 and end_year != 2024:
         df = df[(df[year_col] >= start_year) & (df[year_col] <= end_year)]
@@ -138,7 +140,7 @@ def create_parquet_from_tab(filename: str, column_types: dict) -> None:
     print(f"Saved {parquet_filename} in {time.time() - START_TIME} seconds")
 
 # Load trip data
-#df_trip = load_nts_data('trip_eul_2002-2024.tab', nrows=1000)  # Load first 50000 rows for testing
+##df = load_nts_data('trip_eul_2002-2024.tab', column_types=TRIP_COLUMN_TYPES, nrows=1000, columns=['TripID'])  # Load first 50000 rows for testing
 #df_day = load_nts_data('day_eul_2002-2024.tab', nrows=None)  # Load all rows
 #df = merge_nts_data(df_trip, df_day, on='DayID')
 # df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab',
@@ -190,4 +192,4 @@ def create_parquet_from_tab(filename: str, column_types: dict) -> None:
 
 #CREATE DAY_COLUMN_TYPES in ColumnTypes.py first, then run this to convert day file to parquet
 #create_parquet_from_tab('day_eul_2002-2024.tab', column_types=DAY_COLUMN_TYPES)
-# print("--- %s seconds ---" % (time.time() - START_TIME))
+print("--- %s seconds ---" % (time.time() - START_TIME))
