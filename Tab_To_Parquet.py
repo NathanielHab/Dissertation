@@ -144,13 +144,6 @@ def create_parquet_from_tab(filename: str, column_types: dict) -> None:
 ##df = load_nts_data('trip_eul_2002-2024.tab', column_types=TRIP_COLUMN_TYPES, nrows=1000, columns=['TripID'])  # Load first 50000 rows for testing
 #df_day = load_nts_data('day_eul_2002-2024.tab', nrows=None)  # Load all rows
 #df = merge_nts_data(df_trip, df_day, on='DayID')
-# df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab',
-#                  sep='\t',
-#                  nrows=5,
-#                  dtype=str)
-#                  #usecols=['col1', 'col2', 'col3'])
-
-
 
 # Display
 #df = pd.read_csv('test_output.csv')  # Use 'python' engine for better handling of large files and complex parsing
@@ -176,21 +169,9 @@ def create_parquet_from_tab(filename: str, column_types: dict) -> None:
 # print(df.head())
 # #print(df['W5xHH'])
 # #print(df.columns.tolist())
-# df.to_parquet(DATA_DIR / 'trip_eul_2002-2024.parquet', index=False)
-# print("To parquet--- %s seconds ---" % (time.time() - START_TIME))
-#df.to_csv('test_output.csv', index=False)
-
-# Will need vm to run code below to convert to parquet format, as the csv is too large to load into memory
-# Should be done for all necessary files to speed up future loading and analysis
-
-
-#TO CONVERT TO PARQUET (UNCOMMENT TO RUN)
-# df = pd.read_csv(DATA_DIR / 'trip_eul_2002-2024.tab', 
-#                  sep='\t', 
-#                  engine='python')
-# df.to_parquet(DATA_DIR / 'trip_eul_2002-2024.parquet')
-# print('Done')
 
 #CREATE DAY_COLUMN_TYPES in ColumnTypes.py first, then run this to convert day file to parquet
 #create_parquet_from_tab('day_eul_2002-2024.tab', column_types=DAY_COLUMN_TYPES)
+
+
 print("--- %s seconds ---" % (time.time() - START_TIME))

@@ -62,7 +62,22 @@ TRIP_COLUMN_TYPES = {
 }
 
 DAY_COLUMN_TYPES = {
-    # add when you have the day file columns
+    # Identifiers
+    'DayID':                        'Int64',
+    'IndividualID':                 'Int64',
+    'HouseholdID':                  'Int64',
+    'PSUID':                        'Int64',
+    'PersNo':                       'Int64',
+    # Day details
+    'TravDay':                      'Int64',
+    'TravelYear':                   'Int64',
+    'TravelWeekDay_B01ID':          'Int64',
+    'TravelWeekDay_B02ID':          'Int64',
+    'TravelWeekDay_B03ID':          'Int64',
+    'TravelDayType_B01ID':          'Int64',
+    'TravelDayTypeOld_B01ID':       'Int64',
+    # Survey year
+    'SurveyYear':                   'Int64',
 }
 
 INDIVIDUAL_COLUMN_TYPES = {
