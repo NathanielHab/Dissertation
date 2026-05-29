@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 import time
 import warnings
-from ColumnTypes import TRIP_COLUMN_TYPES, DAY_COLUMN_TYPES, INDIVIDUAL_COLUMN_TYPES
+from ColumnTypes import TRIP_COLUMN_TYPES, DAY_COLUMN_TYPES, INDIVIDUAL_COLUMN_TYPES, TRIP_DAY_COLUMN_TYPES
 
 
 
@@ -141,9 +141,16 @@ def create_parquet_from_tab(filename: str, column_types: dict) -> None:
     print(f"Saved {parquet_filename} in {time.time() - START_TIME} seconds")
 
 # Load trip data
-##df = load_nts_data('trip_eul_2002-2024.tab', column_types=TRIP_COLUMN_TYPES, nrows=1000, columns=['TripID'])  # Load first 50000 rows for testing
-#df_day = load_nts_data('day_eul_2002-2024.tab', nrows=None)  # Load all rows
-#df = merge_nts_data(df_trip, df_day, on='DayID')
+# df_trip_day = load_nts_data('trip_day_merged.parquet', column_types=TRIP_DAY_COLUMN_TYPES)  # Load first 50000 rows for testing
+# df_individual = load_nts_data('individual_eul_2002-2024.parquet', column_types=INDIVIDUAL_COLUMN_TYPES)  # Load all rows
+# print("Loaded trip and individual data in {} seconds".format(time.time() - START_TIME))
+# df = merge_nts_data(df_trip_day, df_individual, on='IndividualID')
+# print("Merged trip and individual data in {} seconds".format(time.time() - START_TIME))
+# df.to_parquet(DATA_DIR / 'trip_day_individual_merged.parquet', index=False)
+# print(f"Saved merged_data.parquet in {time.time() - START_TIME} seconds")
+
+
+# create_parquet_from_tab('individual_eul_2002-2024.tab', column_types=INDIVIDUAL_COLUMN_TYPES)
 
 # Display
 #df = pd.read_csv('test_output.csv')  # Use 'python' engine for better handling of large files and complex parsing

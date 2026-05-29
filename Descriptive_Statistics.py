@@ -85,11 +85,13 @@ def plot_frequency_comparison(
     rotate_labels: bool = False,
     as_percentage: bool = True,
     color1: str = 'steelblue',
-    color2: str = 'coral'
+    color2: str = 'coral',
+    rename_values: Optional[dict] = None
 ) -> None:
 
     def get_values(df):
         df = df[[column] + ([weight_column] if weight_column else [])].dropna()
+        
         if weight_column:
             counts = df.groupby(column)[weight_column].sum()
         else:
@@ -105,6 +107,7 @@ def plot_frequency_comparison(
     vals1 = vals1.reindex(all_categories, fill_value=0)
     vals2 = vals2.reindex(all_categories, fill_value=0)
 
+
     x = range(len(all_categories))
     width = 0.4
 
@@ -112,12 +115,29 @@ def plot_frequency_comparison(
     bars1 = ax.bar([i - width/2 for i in x], vals1.values, width=width, label=label1, color=color1)
     bars2 = ax.bar([i + width/2 for i in x], vals2.values, width=width, label=label2, color=color2)
 
+    
     ax.set_title(title or f'Comparison: {column}', fontsize=14, pad=15)
     ax.set_xlabel(xlabel or column, fontsize=12)
     ax.set_ylabel('% of Total Trips' if as_percentage else 'Frequency', fontsize=12)
     ax.set_xticks(list(x))
-    ax.set_xticklabels([str(c) for c in all_categories],
-                        rotation=45 if rotate_labels else 0)
+    
+    display_labels = []
+    for c in all_categories:
+        # Check both the raw value and its string representation in rename_values
+        if rename_values and c in rename_values:
+            display_labels.append(str(rename_values[c]))
+        elif rename_values and str(c) in rename_values:
+            display_labels.append(str(rename_values[str(c)]))
+        else:
+            display_labels.append(str(c))
+
+    ax.set_xticklabels(display_labels, rotation=45 if rotate_labels else 0, fontsize=7)
+    
+    # ax.set_xticklabels([str(c) for c in all_categories],
+    #                     rotation=45 if rotate_labels else 0)
+    
+    
+    
     for bar in bars1:
         height = bar.get_height()
         if height > 0:
