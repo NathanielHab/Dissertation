@@ -333,3 +333,27 @@ OftHome_B01ID_map = {
     -9: 'DNA',
     -10: 'DEAD'
 }
+
+TripPurpose_B04ID_map = {
+    1: 'Commuting',
+    2: 'Business',
+    3: 'Education / escort education',
+    4: 'Shopping',
+    5: 'Other escort',
+    6: 'Personal business',
+    7: 'Leisure',
+    8: 'Other including just walk',
+    -8: 'NA',
+    -10: 'DEAD'
+}
+
+TravelWeekDay_B01ID_map = {
+    1: 'Monday',
+    2: 'Tuesday',
+    3: 'Wednesday',
+    4: 'Thursday',
+    5: 'Friday',
+    6: 'Saturday',
+    7: 'Sunday',
+    -10: 'DEAD'
+}

@@ -248,6 +248,85 @@ def plot_crosstab(
     plt.tight_layout()
     plt.show()
 
+def plot_trips_per_individual_by_demographic(
+    df_pre: pd.DataFrame,
+    df_post: pd.DataFrame,
+    label_pre: str = 'Pre-COVID',
+    label_post: str = 'Post-COVID',
+    weight_column: str = 'W5',
+    title: str = 'Weighted Trips per Individual by Demographic',
+    figsize: tuple = (14, 7),
+    color_pre: str = 'steelblue',
+    color_post: str = 'coral'
+) -> None:
+
+    def weighted_trips_per_individual(subset: pd.DataFrame) -> float:
+        """
+        For each individual, sum their weighted trips.
+        Return the mean across all individuals in the subset.
+        """
+        if subset.empty:
+            return 0
+        trips_per_person = subset.groupby('IndividualID')[weight_column].sum()
+        return trips_per_person.mean()
+
+    def get_group_values(df: pd.DataFrame) -> dict:
+        return {
+            'White':     weighted_trips_per_individual(
+                             df[df['EthGroupTS_B02ID'] == 1]),
+            'Non-White': weighted_trips_per_individual(
+                             df[df['EthGroupTS_B02ID'] == 2]),
+            'Male':      weighted_trips_per_individual(
+                             df[df['Sex_B01ID'] == 1]),
+            'Female':    weighted_trips_per_individual(
+                             df[df['Sex_B01ID'] == 2]),
+            'All':       weighted_trips_per_individual(df)
+        }
+
+    pre_values = get_group_values(df_pre)
+    post_values = get_group_values(df_post)
+
+    groups = list(pre_values.keys())
+    x = range(len(groups))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    bars_pre = ax.bar([i - width/2 for i in x],
+                      pre_values.values(),
+                      width=width,
+                      label=label_pre,
+                      color=color_pre)
+
+    bars_post = ax.bar([i + width/2 for i in x],
+                       post_values.values(),
+                       width=width,
+                       label=label_post,
+                       color=color_post)
+
+    # Labels on bars
+    for bar in bars_pre:
+        height = bar.get_height()
+        if height > 0:
+            ax.text(bar.get_x() + bar.get_width()/2, height,
+                    f'{height:.2f}', ha='center', va='bottom', fontsize=9)
+
+    for bar in bars_post:
+        height = bar.get_height()
+        if height > 0:
+            ax.text(bar.get_x() + bar.get_width()/2, height,
+                    f'{height:.2f}', ha='center', va='bottom', fontsize=9)
+
+    ax.set_title(title, fontsize=14, pad=15)
+    ax.set_xlabel('Demographic Group', fontsize=12)
+    ax.set_ylabel('Mean Weighted Trips per Individual', fontsize=12)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(groups)
+    ax.legend()
+
+    plt.tight_layout()
+    plt.show()
+
 
 # df = load_nts_data('trip_eul_2002-2024.tab', column_types=TRIP_COLUMN_TYPES, columns=['W5', 'TravDay', 'MainMode_B04ID'], start_year=2024, end_year=2024)
 # plot_frequency(df, column='TravDay', weight_column='W5', title='Weighted Frequency of Trips by Day of the Week', xlabel='Day of the Week')
