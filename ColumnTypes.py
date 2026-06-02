@@ -334,6 +334,62 @@ OftHome_B01ID_map = {
     -10: 'DEAD'
 }
 
+TripPurpFrom_B01ID_map = {
+    1: 'Work',
+    2: 'In course of work',
+    3: 'Education',
+    4: 'Food shopping',
+    5: 'Non food shopping',
+    6: 'Personal business medical',
+    7: 'Personal business eat / drink',
+    8: 'Personal business other',
+    9: 'Eat / drink with friends',
+    10: 'Visit friends',
+    11: 'Other social',
+    12: 'Entertain /  public activity',
+    13: 'Sport: participate',
+    14: 'Holiday: base',
+    15: 'Day trip / just walk',
+    16: 'Other non-escort',
+    17: 'Escort home',
+    18: 'Escort work',
+    19: 'Escort in course of work',
+    20: 'Escort education',
+    21: 'Escort shopping / personal business',
+    22: 'Other escort',
+    23: 'Home',
+    -8: 'NA',
+    -10: 'DEAD'
+}
+
+TripPurpTo_B01ID_map = {
+    1: 'Work',
+    2: 'In course of work',
+    3: 'Education',
+    4: 'Food shopping',
+    5: 'Non food shopping',
+    6: 'Personal business medical',
+    7: 'Personal business eat / drink',
+    8: 'Personal business other',
+    9: 'Eat / drink with friends',
+    10: 'Visit friends',
+    11: 'Other social',
+    12: 'Entertain /  public activity',
+    13: 'Sport: participate',
+    14: 'Holiday: base',
+    15: 'Day trip / just walk',
+    16: 'Other non-escort',
+    17: 'Escort home',
+    18: 'Escort work',
+    19: 'Escort in course of work',
+    20: 'Escort education',
+    21: 'Escort shopping / personal business',
+    22: 'Other escort',
+    23: 'Home',
+    -8: 'NA',
+    -10: 'DEAD'
+}
+
 TripPurpose_B04ID_map = {
     1: 'Commuting',
     2: 'Business',
@@ -357,3 +413,4 @@ TravelWeekDay_B01ID_map = {
     7: 'Sunday',
     -10: 'DEAD'
 }
+

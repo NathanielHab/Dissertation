@@ -1,7 +1,7 @@
 
 
 # Load pre-covid data
-from ColumnTypes import INDIVIDUAL_COLUMN_TYPES, TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, OftHome_B01ID_map, TravelWeekDay_B01ID_map, TripPurpose_B04ID_map
+from ColumnTypes import INDIVIDUAL_COLUMN_TYPES, TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, OftHome_B01ID_map, TravelWeekDay_B01ID_map, TripPurpFrom_B01ID_map, TripPurpTo_B01ID_map, TripPurpose_B04ID_map
 from Descriptive_Statistics import plot_frequency_comparison, plot_trips_per_individual_by_demographic
 from Tab_To_Parquet import load_nts_data
 
@@ -323,6 +323,116 @@ def make_trips_per_individual_by_demographic_comparison():
         label_post='2023-2024'
     )
 
+def make_trips_from_home_purpose_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                        column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                        columns=['TripPurpFrom_B01ID', 'TripPurpTo_B01ID', 'W5', 'SurveyYear'],
+                        start_year=2015)
+    
+    KEEP_PURPOSES = [1, 3, 4, 5, 6, 9, 10, 11, 12, 20, 23]
+
+    # Filter to home-based trips only (TripPurpFrom = 23)
+    df = df[df['TripPurpFrom_B01ID'] == 23]
+    df = df[df['TripPurpTo_B01ID'].isin(KEEP_PURPOSES)]
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='TripPurpTo_B01ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Trip Purpose for Trips From Home: 2015-2019 vs 2023-2024',
+        xlabel='Trip Purpose',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=TripPurpTo_B01ID_map,
+        rotate_labels=True
+    )
+
+def make_trips_to_home_purpose_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                        column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                        columns=['TripPurpFrom_B01ID', 'TripPurpTo_B01ID', 'W5', 'SurveyYear'],
+                        start_year=2015)
+    
+    KEEP_PURPOSES = [1, 3, 4, 5, 6, 9, 10, 11, 12, 20, 23]
+
+    # Filter to home-based trips only (TripPurpTo = 23)
+    df = df[df['TripPurpTo_B01ID'] == 23]
+    df = df[df['TripPurpFrom_B01ID'].isin(KEEP_PURPOSES)]
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='TripPurpFrom_B01ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Trip Purpose (origin) for Trips To Home: 2015-2019 vs 2023-2024',
+        xlabel='Trip Purpose',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=TripPurpFrom_B01ID_map,
+        rotate_labels=True
+    )
+
+def make_trips_from_home_mode_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                        column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                        columns=['TripPurpFrom_B01ID', 'MainMode_B04ID', 'W5', 'SurveyYear'],
+                        start_year=2015)
+    
+    # Filter to home-based trips only (TripPurpFrom = 23)
+    df = df[df['TripPurpFrom_B01ID'] == 23]
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='MainMode_B04ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Main Mode for Trips From Home: 2015-2019 vs 2023-2024',
+        xlabel='Main Mode',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=MainMode_B04ID_map,
+        rotate_labels=True
+    )
+
+def make_trips_to_home_mode_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                        column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                        columns=['TripPurpTo_B01ID', 'MainMode_B04ID', 'W5', 'SurveyYear'],
+                        start_year=2015)
+    
+    # Filter to home-based trips only (TripPurpTo = 23)
+    df = df[df['TripPurpTo_B01ID'] == 23]
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='MainMode_B04ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Main Mode for Trips To Home: 2015-2019 vs 2023-2024',
+        xlabel='Main Mode',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=MainMode_B04ID_map,
+        rotate_labels=True
+    )
+
 # make_main_mode_comparison()
 # make_work_from_home_comparison()
 # make_trips_by_hour_comparison()
@@ -333,4 +443,8 @@ def make_trips_per_individual_by_demographic_comparison():
 # make_trip_purpose_by_gender_pre_covid_comparison()
 # make_trip_purpose_by_gender_post_covid_comparison()
 # make_trip_by_nonwhite_by_purpose_comparison()
-make_trips_per_individual_by_demographic_comparison()
+# make_trips_per_individual_by_demographic_comparison()
+# make_trips_from_home_purpose_comparison()
+make_trips_to_home_purpose_comparison()
+# make_trips_from_home_mode_comparison()
+# make_trips_to_home_mode_comparison()
