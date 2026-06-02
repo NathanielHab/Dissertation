@@ -1,23 +1,40 @@
 
 
-# Load pre-covid data
-from ColumnTypes import INDIVIDUAL_COLUMN_TYPES, TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, OftHome_B01ID_map, TravelWeekDay_B01ID_map, TripPurpFrom_B01ID_map, TripPurpTo_B01ID_map, TripPurpose_B04ID_map
+from typing import Optional
+
+from ColumnTypes import INDIVIDUAL_COLUMN_TYPES, TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, NSSec_B03ID_map, OftHome_B01ID_map, TravelWeekDay_B01ID_map, TripPurpFrom_B01ID_map, TripPurpTo_B01ID_map, TripPurpose_B04ID_map
 from Descriptive_Statistics import plot_frequency_comparison, plot_trips_per_individual_by_demographic
 from Tab_To_Parquet import load_nts_data
 
-def make_trips_by_hour_comparison():
-    df_pre = load_nts_data('trip_eul_2002-2024.tab',
-                            column_types=TRIP_COLUMN_TYPES,
-                            columns=['TripStartHours', 'W5'],
-                            start_year=2002,
-                            end_year=2019)
+def make_trips_by_hour_comparison(day: Optional[int] = None,
+                                  purpose: Optional[int] = None,
+                                  mode: Optional[int] = None):
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                            column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                            columns=['TravelWeekDay_B01ID', 'TripStartHours', 
+                                     'TripPurpose_B04ID', 'MainMode_B04ID', 
+                                     'W5', 'SurveyYear'],)
 
     # Load post-covid data
-    df_post = load_nts_data('trip_eul_2002-2024.tab',
-                            column_types=TRIP_COLUMN_TYPES,
-                            columns=['TripStartHours', 'W5'],
-                            start_year=2023,
-                            end_year=2024)
+    # df_post = load_nts_data('trip_day_individual_merged.parquet',
+    #                         column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+    #                         columns=['TravelWeekDay_B01ID', 'TripStartHours', 'W5'],
+    #                         start_year=2023,
+    #                         end_year=2024)
+
+    if day is not None:
+        df = df[df['TravelWeekDay_B01ID'] == day]
+    if purpose is not None:
+        df = df[df['TripPurpose_B04ID'] == purpose]
+    if mode is not None:
+        df = df[df['MainMode_B04ID'] == mode]
+
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+    title_suffix = f" on {TravelWeekDay_B01ID_map[day]}s" if day is not None else ''
+    title_suffix += f" for {TripPurpose_B04ID_map[purpose]}" if purpose is not None else ''
+    title_suffix += f" by {MainMode_B04ID_map[mode]}" if mode is not None else ''
 
     # Plot both
     plot_frequency_comparison(
@@ -26,7 +43,7 @@ def make_trips_by_hour_comparison():
         column='TripStartHours',
         label1='2002-2019',
         label2='2023-2024',
-        title='Trip Start Hour: Pre vs Post COVID',
+        title=f'Trip Start Hour: Pre vs Post COVID{title_suffix}',
         xlabel='Hour of Day',
         weight_column='W5',
         as_percentage=True
@@ -433,9 +450,37 @@ def make_trips_to_home_mode_comparison():
         rotate_labels=True
     )
 
+def make_CarFreq_by_NSSEC_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                        column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                        columns=['PrivCar2_B01ID', 'NSSec_B03ID', 'W5', 'SurveyYear'],
+                        start_year=2015)
+    
+    
+    df = df[df['PrivCar2_B01ID'].isin([1, 2, 3, 4])]  # Only look at those who use car at least weekly
+    df = df[df['NSSec_B03ID'] > 0]  # Filter out those with invalid NSSEC
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='NSSec_B03ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Car Frequency by NSSEC: 2015-2019 vs 2023-2024',
+        xlabel='NSSEC',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=NSSec_B03ID_map,
+        rotate_labels=True
+    )
+
+
 # make_main_mode_comparison()
 # make_work_from_home_comparison()
-# make_trips_by_hour_comparison()
+make_trips_by_hour_comparison(day=5, mode=3)
 # make_trips_by_hour_teleworker_comparison()
 # make_trips_by_purpose_teleworker_comparison()
 # make_commutes_by_day_teleworker_comparison()
@@ -445,6 +490,7 @@ def make_trips_to_home_mode_comparison():
 # make_trip_by_nonwhite_by_purpose_comparison()
 # make_trips_per_individual_by_demographic_comparison()
 # make_trips_from_home_purpose_comparison()
-make_trips_to_home_purpose_comparison()
+# make_trips_to_home_purpose_comparison()
 # make_trips_from_home_mode_comparison()
 # make_trips_to_home_mode_comparison()
+# make_CarFreq_by_NSSEC_comparison()

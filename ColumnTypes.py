@@ -414,3 +414,12 @@ TravelWeekDay_B01ID_map = {
     -10: 'DEAD'
 }
 
+NSSec_B03ID_map = {
+    1: 'Managerial and professional occupations',
+    2: 'Intermediate occupations and small employers',
+    3: 'Routine and manual occupations',
+    4: 'Never worked and long-term unemployed',
+    5: 'Not classified (including students)',
+    -9: 'DNA',
+    -10: 'DEAD'
+}
