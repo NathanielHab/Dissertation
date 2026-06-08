@@ -42,7 +42,7 @@ def make_trips_by_hour_comparison(day: Optional[int] = None,
         df2=df_post,
         column='TripStartHours',
         label1='2002-2019',
-        label2='2023-2024',
+        label2='2015-2019',
         title=f'Trip Start Hour: Pre vs Post COVID{title_suffix}',
         xlabel='Hour of Day',
         weight_column='W5',
@@ -90,7 +90,7 @@ def make_main_mode_comparison():
     df_post = load_nts_data('trip_eul_2002-2024.tab',
                             column_types=TRIP_COLUMN_TYPES,
                             columns=['MainMode_B04ID', 'W5'],
-                            start_year=2024,
+                            start_year=2023,
                             end_year=2024)
 
     plot_frequency_comparison(
@@ -478,9 +478,10 @@ def make_CarFreq_by_NSSEC_comparison():
     )
 
 
-# make_main_mode_comparison()
+
+#make_trips_by_hour_comparison(day=None, purpose=None, mode=None)
+#make_main_mode_comparison()
 # make_work_from_home_comparison()
-make_trips_by_hour_comparison(day=5, mode=3)
 # make_trips_by_hour_teleworker_comparison()
 # make_trips_by_purpose_teleworker_comparison()
 # make_commutes_by_day_teleworker_comparison()
