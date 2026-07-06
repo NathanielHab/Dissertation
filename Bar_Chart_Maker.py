@@ -3,17 +3,98 @@
 from typing import Optional
 
 from ColumnTypes import INDIVIDUAL_COLUMN_TYPES, TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, NSSec_B03ID_map, OftHome_B01ID_map, TravelWeekDay_B01ID_map, TripPurpFrom_B01ID_map, TripPurpTo_B01ID_map, TripPurpose_B04ID_map
-from Descriptive_Statistics import plot_frequency_comparison, plot_trips_per_individual_by_demographic
+from Descriptive_Statistics import plot_frequency_comparison, plot_share_comparison, plot_trips_per_individual_by_demographic
 from Tab_To_Parquet import load_nts_data
+
+def make_trips_by_day_comparison(purpose: Optional[int] = None,
+                                 mode: Optional[int] = None,
+                                 as_percentage: bool = True,
+                                 weekdays_only: bool = True):
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                            column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                            columns=['TravelWeekDay_B01ID', 
+                                     'TripPurpose_B04ID', 'MainMode_B04ID', 
+                                     'W5', 'SurveyYear'],
+                            start_year=2015)
+
+    if purpose is not None:
+        df = df[df['TripPurpose_B04ID'] == purpose]
+    if mode is not None:
+        df = df[df['MainMode_B04ID'] == mode]
+
+    if weekdays_only:
+        df = df[df['TravelWeekDay_B01ID'].isin([1, 2, 3, 4, 5])]  # Filter to weekdays only
+    
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+    title_suffix = f" for {TripPurpose_B04ID_map[purpose]}" if purpose is not None else ''
+    title_suffix += f" by {MainMode_B04ID_map[mode]}" if mode is not None else ''
+
+    # Plot both
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='TravelWeekDay_B01ID',
+        label1='2015-2019',
+        label2='2023-2024',
+        title=f'Trip Day: Pre vs Post COVID{title_suffix}',
+        xlabel='Day of Week',
+        weight_column='W5',
+        rename_values=TravelWeekDay_B01ID_map,
+        as_percentage=as_percentage
+    )
+
+def make_mode_share_by_day_comparison(mode: int,
+                                      purpose: Optional[int] = None,
+                                      weekdays_only: bool = True):
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                            column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                            columns=['TravelWeekDay_B01ID', 
+                                     'TripPurpose_B04ID', 'MainMode_B04ID', 
+                                     'W5', 'SurveyYear'],
+                            start_year=2015)
+
+    if purpose is not None:
+        df = df[df['TripPurpose_B04ID'] == purpose]
+    # df = df[df['MainMode_B04ID'] == mode]
+
+    if weekdays_only:
+        df = df[df['TravelWeekDay_B01ID'].isin([1, 2, 3, 4, 5])]  # Filter to weekdays only
+    
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+    title_suffix = f" for {TripPurpose_B04ID_map[purpose]}" if purpose is not None else ''
+    title_suffix += f" by {MainMode_B04ID_map[mode]}"
+
+    # Plot both
+    print("plotting")
+    plot_share_comparison(
+        df1=df_pre,
+        df2=df_post,
+        group_column='TravelWeekDay_B01ID',
+        condition=lambda d: d['MainMode_B04ID'] == mode,
+        label1='2015-2019',
+        label2='2023-2024',
+        title=f'Mode Share by Day: Pre vs Post COVID{title_suffix}',
+        xlabel='Day of Week',
+        ylabel='% of Trips by Car (within day)',
+        weight_column='W5',
+        rename_values=TravelWeekDay_B01ID_map
+    )
+
 
 def make_trips_by_hour_comparison(day: Optional[int] = None,
                                   purpose: Optional[int] = None,
-                                  mode: Optional[int] = None):
+                                  mode: Optional[int] = None,
+                                  as_percentage: bool = True):
     df = load_nts_data('trip_day_individual_merged.parquet',
                             column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
                             columns=['TravelWeekDay_B01ID', 'TripStartHours', 
                                      'TripPurpose_B04ID', 'MainMode_B04ID', 
-                                     'W5', 'SurveyYear'],)
+                                     'W5', 'SurveyYear'],
+                            start_year=2015)
 
     # Load post-covid data
     # df_post = load_nts_data('trip_day_individual_merged.parquet',
@@ -41,12 +122,12 @@ def make_trips_by_hour_comparison(day: Optional[int] = None,
         df1=df_pre,
         df2=df_post,
         column='TripStartHours',
-        label1='2002-2019',
-        label2='2015-2019',
+        label1='2015-2019',
+        label2='2023-2024',
         title=f'Trip Start Hour: Pre vs Post COVID{title_suffix}',
         xlabel='Hour of Day',
         weight_column='W5',
-        as_percentage=True
+        as_percentage=as_percentage
     )
 
 def make_work_from_home_comparison():
@@ -83,7 +164,7 @@ def make_main_mode_comparison():
     df_pre = load_nts_data('trip_eul_2002-2024.tab',
                             column_types=TRIP_COLUMN_TYPES,
                             columns=['MainMode_B04ID', 'W5'],
-                            start_year=2002,
+                            start_year=2015,
                             end_year=2019)
 
     # Load post-covid data
@@ -326,7 +407,7 @@ def make_trips_per_individual_by_demographic_comparison():
     df = load_nts_data('trip_day_individual_merged.parquet',
                         column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
                         columns=['IndividualID', 'SurveyYear', 'Sex_B01ID', 'EthGroupTS_B02ID', 'W5'],
-                        start_year=2018,
+                        start_year=2015,
                         end_year=2024)
                                  
     
@@ -336,7 +417,7 @@ def make_trips_per_individual_by_demographic_comparison():
     plot_trips_per_individual_by_demographic(
         df_pre=df_pre,
         df_post=df_post,
-        label_pre='2018-2019',
+        label_pre='2015-2019',
         label_post='2023-2024'
     )
 
@@ -479,7 +560,16 @@ def make_CarFreq_by_NSSEC_comparison():
 
 
 
-#make_trips_by_hour_comparison(day=None, purpose=None, mode=None)
+# make_trips_by_day_comparison() # Shows aggregate travel patterns have not changed much pre vs post covid
+# make_trips_by_day_comparison(purpose=1) # Shows that commute patterns have changed pre vs post covid
+# make_trips_by_day_comparison(mode=3, weekdays_only=False)
+# make_mode_share_by_day_comparison(mode=11, purpose=1) # Shows commute by rail much lower of friday than pre-covid
+make_trips_by_hour_comparison(mode=11, day=5)
+
+# make_trips_by_hour_comparison()
+
+
+#make_trips_by_hour_comparison(day=5, purpose=None, mode=3)
 #make_main_mode_comparison()
 # make_work_from_home_comparison()
 # make_trips_by_hour_teleworker_comparison()

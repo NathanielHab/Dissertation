@@ -4,7 +4,7 @@ import matplotlib.ticker as mticker
 import seaborn as sns
 import pandas as pd
 
-from ColumnTypes import TRIP_COLUMN_TYPES
+from ColumnTypes import TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, TravelWeekDay_B01ID_map
 from Tab_To_Parquet import load_nts_data
 
 # Map friendly names to pandas names
@@ -15,7 +15,6 @@ normalize_map = {
     None: False,
     'index': 'index',
     'columns': 'columns',
-    'all': 'all',
     False: False
 }
 
@@ -211,20 +210,33 @@ def plot_crosstab(
     normalize: Optional[str] = 'row',
     title: Optional[str] = None,
     figsize: tuple = (12, 6),
-    rotate_labels: bool = True
+    rotate_labels: bool = True,
+    rename_values: Optional[dict] = None,
+    rename_columns: Optional[dict] = None
 ) -> None:
     """
     Plot a crosstabulation as a grouped bar chart.
     """
 
-    normalize=normalize_map[normalize]
-    # Get crosstab without totals for plotting
+    normalize_arg = normalize_map[normalize]
     ct = crosstab(df, row, col,
                   weight_column=weight_column,
-                  normalize=normalize,
+                  normalize=normalize_arg,
                   show_totals=False)
 
-    ct.plot(kind='bar', figsize=figsize, ax=plt.subplots(1, 1, figsize=figsize)[1])
+    def rename_labels(values, mapping):
+        renamed = []
+        for v in values:
+            if mapping and v in mapping:
+                renamed.append(str(mapping[v]))
+            elif mapping and str(v) in mapping:
+                renamed.append(str(mapping[str(v)]))
+            else:
+                renamed.append(str(v))
+        return renamed
+
+    ct.index = rename_labels(ct.index, rename_values)
+    ct.columns = rename_labels(ct.columns, rename_columns)
 
     fig, ax = plt.subplots(figsize=figsize)
     ct.plot(kind='bar', ax=ax)
@@ -238,7 +250,7 @@ def plot_crosstab(
     ax.legend(title=col, bbox_to_anchor=(1.05, 1), loc='upper left')
 
     if rotate_labels:
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=0, ha='right')
 
     if normalize:
         ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f'{x:.1f}%'))
@@ -328,7 +340,85 @@ def plot_trips_per_individual_by_demographic(
     plt.show()
 
 
-# df = load_nts_data('trip_eul_2002-2024.tab', column_types=TRIP_COLUMN_TYPES, columns=['W5', 'TravDay', 'MainMode_B04ID'], start_year=2024, end_year=2024)
+def plot_share_comparison(
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+    group_column: str,
+    condition,  # callable: takes a df, returns boolean Series
+    label1: str = 'Group 1',
+    label2: str = 'Group 2',
+    weight_column: Optional[str] = None,
+    title: Optional[str] = None,
+    xlabel: Optional[str] = None,
+    ylabel: Optional[str] = None,
+    figsize: tuple = (14, 6),
+    rotate_labels: bool = False,
+    color1: str = 'steelblue',
+    color2: str = 'coral',
+    rename_values: Optional[dict] = None
+) -> None:
+
+    def get_share(df):
+        d = df[[group_column] + ([weight_column] if weight_column else [])].copy()
+        match_mask = condition(df).reindex(d.index, fill_value=False)
+        w = d[weight_column] if weight_column else pd.Series(1, index=d.index)
+
+        total_by_group = d.assign(_w=w).groupby(group_column)['_w'].sum()
+        match_by_group = d.assign(_w=w)[match_mask].groupby(group_column)['_w'].sum()
+
+        share = (match_by_group / total_by_group * 100).reindex(total_by_group.index, fill_value=0)
+        return share.sort_index()
+
+    vals1 = get_share(df1)
+    vals2 = get_share(df2)
+
+    all_categories = sorted(set(vals1.index) | set(vals2.index))
+    vals1 = vals1.reindex(all_categories, fill_value=0)
+    vals2 = vals2.reindex(all_categories, fill_value=0)
+
+    x = range(len(all_categories))
+    width = 0.4
+
+    fig, ax = plt.subplots(figsize=figsize)
+    bars1 = ax.bar([i - width/2 for i in x], vals1.values, width=width, label=label1, color=color1)
+    bars2 = ax.bar([i + width/2 for i in x], vals2.values, width=width, label=label2, color=color2)
+
+    ax.set_title(title or f'Share Comparison: {group_column}', fontsize=14, pad=15)
+    ax.set_xlabel(xlabel or group_column, fontsize=12)
+    ax.set_ylabel(ylabel or '% within group', fontsize=12)
+    ax.set_xticks(list(x))
+
+    display_labels = []
+    for c in all_categories:
+        if rename_values and c in rename_values:
+            display_labels.append(str(rename_values[c]))
+        elif rename_values and str(c) in rename_values:
+            display_labels.append(str(rename_values[str(c)]))
+        else:
+            display_labels.append(str(c))
+
+    ax.set_xticklabels(display_labels, rotation=45 if rotate_labels else 0, fontsize=7)
+
+    for bar in bars1:
+        height = bar.get_height()
+        if height > 0:
+            ax.text(bar.get_x() + bar.get_width()/2, height,
+                    f' {height:.1f}%', ha='center', va='bottom', fontsize=7, rotation=90)
+
+    for bar in bars2:
+        height = bar.get_height()
+        if height > 0:
+            ax.text(bar.get_x() + bar.get_width()/2, height,
+                    f' {height:.1f}%', ha='center', va='bottom', fontsize=7, rotation=90)
+
+    ax.legend()
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f'{x:.1f}%'))
+
+    plt.tight_layout()
+    plt.show()
+
+
+# df = load_nts_data('trip_day_individual_merged.parquet', column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, columns=['W5', 'TravelWeekDay_B01ID', 'MainMode_B04ID'], start_year=2024, end_year=2024)
 # plot_frequency(df, column='TravDay', weight_column='W5', title='Weighted Frequency of Trips by Day of the Week', xlabel='Day of the Week')
 
 # Just the table (like SPSS output)
@@ -336,11 +426,13 @@ def plot_trips_per_individual_by_demographic(
 # print(ct)
 
 # Row percentages table
-# ct = crosstab(df, row='TravDay', col='MainMode_B04ID', 
+# ct = crosstab(df, row='TravelWeekDay_B01ID', col='MainMode_B04ID', 
 #               weight_column='W5', normalize='row')
 # print(ct)
 
 # Plot it
-# plot_crosstab(df, row='TravDay', col='MainMode_B04ID', 
+# plot_crosstab(df, row='TravelWeekDay_B01ID', col='MainMode_B04ID', 
 #               weight_column='W5', normalize='row',
-#               title='Mode of Transport by Day of Week')
+#               title='Mode of Transport by Day of Week',
+#               rename_values=TravelWeekDay_B01ID_map,
+#               rename_columns=MainMode_B04ID_map)
