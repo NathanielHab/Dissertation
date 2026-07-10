@@ -423,3 +423,11 @@ NSSec_B03ID_map = {
     -9: 'DNA',
     -10: 'DEAD'
 }
+
+EthGroupTS_B02ID_map = {
+    1: 'White',
+    2: 'Non-White',
+    -8: 'NA',
+    -9: 'DNA',
+    -10: 'DEAD'
+}

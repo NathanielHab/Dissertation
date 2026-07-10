@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from ColumnTypes import TRIP_DAY_INDIVIDUAL_COLUMN_TYPES
+from ColumnTypes import TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, NSSec_B03ID_map
 from Tab_To_Parquet import load_nts_data
 from scipy import stats
 from itertools import combinations
@@ -30,6 +30,7 @@ def weighted_one_way_anova(df, dependent_var, factor_var, weight_column=None,
     if weight_column:
         cols.append(weight_column)
     df = df[cols].dropna()
+    df = df[df[factor_var]>0] # Drop invalid factor values (e.g., NSSec_B03ID <= 0)
     
     # Get unique groups, sorted
     groups = sorted(df[factor_var].unique())
@@ -179,12 +180,56 @@ def weighted_one_way_anova(df, dependent_var, factor_var, weight_column=None,
     
     return result
 
+def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|", year_range=None):
+    
+    def fmt(v):
+        try:
+            return str(round(float(v), 3))
+        except (ValueError, TypeError):
+            return str(v)
+
+    desc = results['descriptives'].copy()
+    if label_map:
+        desc.index = [label_map.get(i, i) for i in desc.index]
+
+    posthoc = results.get('posthoc', None)
+    if posthoc is not None and label_map:
+        posthoc = posthoc.copy()
+        posthoc['(I) Group'] = posthoc['(I) Group'].map(lambda x: label_map.get(x, x))
+        posthoc['(J) Group'] = posthoc['(J) Group'].map(lambda x: label_map.get(x, x))
+
+    # Sort posthoc by (I) Group then (J) Group
+    posthoc = posthoc.sort_values(by=['(I) Group', '(J) Group']).reset_index(drop=True)
+    
+    period = f" ({year_range})" if year_range else ""
+    print(f"One-Way ANOVA: {dependent_var} by {factor_var}{period}")
+
+    print("\nDESCRIPTIVES")
+    print(sep.join([factor_var] + list(desc.columns)))
+    for group, row in desc.iterrows():
+        print(sep.join([str(group)] + [fmt(v) for v in row]))
+
+    print("\nANOVA TABLE")
+    print(sep + sep.join(results['anova'].columns))
+    for idx, row in results['anova'].iterrows():
+        print(idx + sep + sep.join([fmt(v) for v in row]))
+
+    if posthoc is not None:
+        print("\nTUKEY HSD POST-HOC")
+        cols = ['(I) Group', '(J) Group', 'Mean Difference (I-J)',
+                'Std. Error', 'Sig.', 'Significant', '95% CI Lower', '95% CI Upper']
+        print(sep.join(cols))
+        for _, row in posthoc[cols].iterrows():
+            print(sep.join([str(v) for v in row]))
+    print("\n")
+
+
 
 # --- EXAMPLE USAGE ---
 # df = load_nts_data('trip_day_individual_merged.parquet',
 #                    column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
 #                    columns=['W5', 'NSSec_B03ID', 'TripTotalTime'],
-#                    start_year=2023, end_year=2024)
+#                    start_year=2015, end_year=2019)
 # df = df[df['NSSec_B03ID']>0]
 
 # results = weighted_one_way_anova(
@@ -195,9 +240,19 @@ def weighted_one_way_anova(df, dependent_var, factor_var, weight_column=None,
 #     tukey=True
 # )
 
-# print("=== DESCRIPTIVES ===")
-# print(results['descriptives'])
-# print("\n=== ANOVA TABLE ===")
-# print(results['anova'])
-# print("\n=== TUKEY POST-HOC ===")
-# print(results['posthoc'])
+# # print("=== DESCRIPTIVES ===")
+# # print(results['descriptives'])
+# # print("\n=== ANOVA TABLE ===")
+# # print(results['anova'])
+# # print("\n=== TUKEY POST-HOC ===")
+# # print(results['posthoc'])
+
+
+# # --- USAGE OF print anova csv---
+# print_anova_csv(
+#     results=results,
+#     dependent_var='Trip Total Time (mins)',
+#     factor_var='NS-SEC Category',
+#     year_range='2015-2019'
+#     # label_map=NSSec_B03ID_map
+# )
