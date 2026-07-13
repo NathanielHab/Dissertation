@@ -431,3 +431,20 @@ EthGroupTS_B02ID_map = {
     -9: 'DNA',
     -10: 'DEAD'
 }
+
+TripOrigGOR_B02ID_map = {
+    1: 'North East',
+    2: 'North West',
+    3: 'Yorkshire and the Humber',
+    4: 'East Midlands',
+    5: 'West Midlands',
+    6: 'East of England',
+    7: 'London',
+    8: 'South East',
+    9: 'South West',
+    10: 'Wales',
+    11: 'Scotland',
+    -8: 'NA',
+    -9: 'DNA',
+    -10: 'DEAD',
+}

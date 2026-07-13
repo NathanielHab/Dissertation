@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from ColumnTypes import TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, NSSec_B03ID_map
+from ColumnTypes import TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, NSSec_B03ID_map, TravelWeekDay_B01ID_map
 from Tab_To_Parquet import load_nts_data
 from scipy import stats
 from itertools import combinations
@@ -119,17 +119,22 @@ def weighted_one_way_anova(df, dependent_var, factor_var, weight_column=None,
     f_stat = ms_between / ms_within
     p_value = 1 - stats.f.cdf(f_stat, df_between, df_within)
     
+    # --- EFFECT SIZE ---
+    eta_squared = ss_between / (ss_between + ss_within)
+    
     anova_table = pd.DataFrame({
         'Sum of Squares': [round(ss_between, 3), round(ss_within, 3), round(ss_between + ss_within, 3)],
         'df': [df_between, round(df_within, 0), round(df_between + df_within, 0)],
         'Mean Square': [round(ms_between, 3), round(ms_within, 3), ''],
         'F': [round(f_stat, 3), '', ''],
-        'Sig.': [round(p_value, 3) if p_value >= 0.001 else '<.001', '', '']
+        'Sig.': [round(p_value, 3) if p_value >= 0.001 else '<.001', '', ''],
+        'Eta Squared': [round(eta_squared, 5), '', ''] # as string to maintain decimal precision
     }, index=['Between Groups', 'Within Groups', 'Total'])
-    
+
     result = {
         'descriptives': descriptives,
-        'anova': anova_table
+        'anova': anova_table,
+        'eta_squared': f"{eta_squared:.6f}"   # also exposed directly, not just buried in the table
     }
     
     # --- TUKEY HSD POST-HOC ---
@@ -184,7 +189,7 @@ def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|",
     
     def fmt(v):
         try:
-            return str(round(float(v), 3))
+            return str(round(float(v), 5))
         except (ValueError, TypeError):
             return str(v)
 
@@ -193,14 +198,14 @@ def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|",
         desc.index = [label_map.get(i, i) for i in desc.index]
 
     posthoc = results.get('posthoc', None)
-    if posthoc is not None and label_map:
+    if posthoc is not None:
         posthoc = posthoc.copy()
-        posthoc['(I) Group'] = posthoc['(I) Group'].map(lambda x: label_map.get(x, x))
-        posthoc['(J) Group'] = posthoc['(J) Group'].map(lambda x: label_map.get(x, x))
+        # Sort by numeric (I) Group then (J) Group BEFORE applying label map
+        posthoc = posthoc.sort_values(by=['(I) Group', '(J) Group']).reset_index(drop=True)
+        if label_map:
+            posthoc['(I) Group'] = posthoc['(I) Group'].map(lambda x: label_map.get(x, x))
+            posthoc['(J) Group'] = posthoc['(J) Group'].map(lambda x: label_map.get(x, x))
 
-    # Sort posthoc by (I) Group then (J) Group
-    posthoc = posthoc.sort_values(by=['(I) Group', '(J) Group']).reset_index(drop=True)
-    
     period = f" ({year_range})" if year_range else ""
     print(f"One-Way ANOVA: {dependent_var} by {factor_var}{period}")
 
@@ -228,14 +233,31 @@ def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|",
 # --- EXAMPLE USAGE ---
 # df = load_nts_data('trip_day_individual_merged.parquet',
 #                    column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
-#                    columns=['W5', 'NSSec_B03ID', 'TripTotalTime'],
+#                    columns=['W5', 'NSSec_B03ID', 'TripTotalTime', 'SurveyYear',
+#                             'TripID', 'IndividualID', 'TravelWeekDay_B01ID'],
 #                    start_year=2015, end_year=2019)
-# df = df[df['NSSec_B03ID']>0]
+# df = df[df['TravelWeekDay_B01ID'].isin([5])]  # fridays only
+# df_pre = df[df['SurveyYear'] <= 2019]
+# df_post = df[df['SurveyYear'] >= 2023]
+# def get_trips_per_person(df, weight_column='W5'):
+#     df = df[['IndividualID', 'TripID'] + ([weight_column] if weight_column else [])].dropna()
+    
+#     if weight_column:
+#         # weighted trip count per person
+#         per_person = df.groupby('IndividualID')[weight_column].sum()
+#     else:
+#         per_person = df.groupby('IndividualID')['TripID'].count()
+    
+#     return per_person.mean()
+# print(get_trips_per_person(df_pre, weight_column='W5'))
+# print(get_trips_per_person(df_post, weight_column='W5'))
+#print(df['W5'].describe())
 
 # results = weighted_one_way_anova(
 #     df=df,
 #     dependent_var='TripTotalTime',
-#     factor_var='NSSec_B03ID',
+#     factor_var='TravelWeekDay_B01ID',
+#     # label_map=TravelWeekDay_B01ID_map,
 #     weight_column='W5',
 #     tukey=True
 # )
@@ -252,7 +274,7 @@ def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|",
 # print_anova_csv(
 #     results=results,
 #     dependent_var='Trip Total Time (mins)',
-#     factor_var='NS-SEC Category',
-#     year_range='2015-2019'
-#     # label_map=NSSec_B03ID_map
+#     factor_var='TravelWeekDay_B01ID',
+#     year_range='2015-2019',
+#     label_map=TravelWeekDay_B01ID_map
 # )

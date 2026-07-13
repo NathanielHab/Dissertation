@@ -564,7 +564,7 @@ def make_CarFreq_by_NSSEC_comparison():
 # make_trips_by_day_comparison(purpose=1) # Shows that commute patterns have changed pre vs post covid
 # make_trips_by_day_comparison(mode=3, weekdays_only=False)
 # make_mode_share_by_day_comparison(mode=11, purpose=1) # Shows commute by rail much lower of friday than pre-covid
-make_trips_by_hour_comparison(mode=11, day=5)
+# make_trips_by_hour_comparison(mode=11, day=5)
 
 # make_trips_by_hour_comparison()
 
