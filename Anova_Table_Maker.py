@@ -2,7 +2,7 @@ from Anova import weighted_one_way_anova, print_anova_csv
 from ColumnTypes import TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, EthGroupTS_B02ID_map, MainMode_B04ID_map, NSSec_B03ID_map, TravelWeekDay_B01ID_map, TripOrigGOR_B02ID_map, TripPurpose_B04ID_map
 from Tab_To_Parquet import load_nts_data
 
-def run_anova(dependent_var, factor_var, df=None, factor_is_in=None, weight_column='W5',
+def run_anova(dependent_var, factor_var, df_original=None, factor_is_in=None, weight_column='W5',
               tukey=True, alpha=0.05, label_map=None, to_print=False,
               sep="|", start_year=2015, end_year=2019):
     """
@@ -25,7 +25,7 @@ def run_anova(dependent_var, factor_var, df=None, factor_is_in=None, weight_colu
     --------
     dict with keys: 'descriptives', 'anova', 'posthoc' (if tukey=True)
     """
-    
+    df = df_original.copy() if df_original is not None else None
     if df is None:
         df = load_nts_data('trip_day_individual_merged.parquet',
                         column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
@@ -60,21 +60,15 @@ def run_anova(dependent_var, factor_var, df=None, factor_is_in=None, weight_colu
     return results
 
 
-def make_all_TripTime_anova_tables():
+def make_all_anova_tables(dependent_var='TripTotalTime',
+                          factors = ['NSSec_B03ID']):
     """
-    Runs ANOVA for 'TripTotalTime' against multiple factors and prints results for two year-ranges.
+    Runs ANOVA for dependent variable against multiple factors and prints results for pre and post covid.
     """
-    factors = ['NSSec_B03ID', 'TripOrigGOR_B02ID', 'MainMode_B04ID'] #, 'TripPurpose_B04ID', 'EthGroupTS_B02ID', 'TravelWeekDay_B01ID']
+    columns_needed = ['W5', 'SurveyYear', dependent_var] + factors
     df = load_nts_data('trip_day_individual_merged.parquet',
                     column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
-                    columns=['W5', 'NSSec_B03ID', 'TripTotalTime', 'TripDisExSW', 'SurveyYear',
-                                'TripPurpose_B04ID', 'MainMode_B04ID', 'TripOrigGOR_B02ID',
-                                'EthGroupTS_B02ID', 'TravelWeekDay_B01ID'])
-    # df = df[df['TripOrigGOR_B02ID'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9])]
-    # df = df[df['EthGroupTS_B02ID'].isin([1, 2])]
-
-    # for var in ['NSSec_B03ID', 'TripOrigGOR_B02ID', 'MainMode_B04ID', 'TripPurpose_B04ID']:
-    #     mapped = None if var == 'NSSec_B03ID'or var == 'TripOrigGOR_B02ID' else (MainMode_B04ID_map if var == 'MainMode_B04ID' else TripPurpose_B04ID_map)
+                    columns=columns_needed)
     for factor in factors:
         label_map = None
         factor_is_in = None
@@ -94,8 +88,8 @@ def make_all_TripTime_anova_tables():
             label_map = NSSec_B03ID_map
 
         run_anova(
-            df=df,
-            dependent_var='TripTotalTime',
+            df_original=df,
+            dependent_var=dependent_var,
             factor_var=factor,
             factor_is_in=factor_is_in,
             label_map=label_map,
@@ -105,32 +99,20 @@ def make_all_TripTime_anova_tables():
         )
 
         run_anova(
-            df=df,
-            dependent_var='TripTotalTime',
+            df_original=df,
+            dependent_var=dependent_var,
             factor_var=factor,
+            factor_is_in=factor_is_in,
             label_map=label_map,
             start_year=2015,
             end_year=2019,
             to_print=True
         )
-   
-make_all_TripTime_anova_tables()
-    # run_anova(
-    #     df=df,
-    #     dependent_var='TripTotalTime',
-    #     factor_var='TravelWeekDay_B01ID',
-    #     label_map=TravelWeekDay_B01ID_map,
-    #     start_year=2023,
-    #     end_year=2024,
-    #     to_print=True
-    # )
 
-    # run_anova(
-    #     df=df,
-    #     dependent_var='TripTotalTime',
-    #     factor_var='TravelWeekDay_B01ID',
-    #     label_map=TravelWeekDay_B01ID_map,
-    #     start_year=2015,
-    #     end_year=2019,
-    #     to_print=True
-    # )
+# make_all_anova_tables(factors=['NSSec_B03ID',
+#                                 'TripOrigGOR_B02ID',
+#                                 'MainMode_B04ID', 
+#                                 'TripPurpose_B04ID', 
+#                                 'EthGroupTS_B02ID', 
+#                                 'TravelWeekDay_B01ID'])
+make_all_anova_tables(dependent_var='TripDisExSW', factors=['TravelWeekDay_B01ID'])
