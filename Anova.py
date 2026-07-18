@@ -185,7 +185,7 @@ def weighted_one_way_anova(df, dependent_var, factor_var, weight_column=None,
     
     return result
 
-def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|", year_range=None):
+def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|", year_range=None, name=""):
     
     def fmt(v):
         try:
@@ -207,7 +207,8 @@ def print_anova_csv(results, dependent_var, factor_var, label_map=None, sep="|",
             posthoc['(J) Group'] = posthoc['(J) Group'].map(lambda x: label_map.get(x, x))
 
     period = f" ({year_range})" if year_range else ""
-    print(f"One-Way ANOVA: {dependent_var} by {factor_var}{period}")
+    print(f"One-Way ANOVA: {dependent_var} {name} by {factor_var}{period}")
+
 
     print("\nDESCRIPTIVES")
     print(sep.join([factor_var] + list(desc.columns)))

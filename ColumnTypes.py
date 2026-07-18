@@ -334,6 +334,12 @@ OftHome_B01ID_map = {
     -10: 'DEAD'
 }
 
+OftHome_Binary_map = {
+    1: 'WFH 1+ days a week',
+    2: 'WFH <1 day a week',
+    -1: 'NA',
+}
+
 TripPurpFrom_B01ID_map = {
     1: 'Work',
     2: 'In course of work',
