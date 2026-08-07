@@ -189,8 +189,8 @@ def create_binary_from_variable(df, column_name, threshold):
 #                                 'TripPurpose_B04ID', 
 #                                 'EthGroupTS_B02ID', 
 #                                 'TravelWeekDay_B01ID'])
-# make_all_anova_tables(dependent_var='TripDisExSW', factors=['TravelWeekDay_B01ID'])
+make_all_anova_tables(dependent_var='TripDisExSW', factors=['TravelWeekDay_B01ID'])
 
-make_all_anova_tables(factors=['TripStart_B01ID'], tukey=False)  # Weekdays only
+# make_all_anova_tables(factors=['TripStart_B01ID'], tukey=False)  # Weekdays only
 # make_pre_post_anova_tables(dependent_var='TripTotalTime', 
 #                            characteristics={'TravelWeekDay_B01ID': [5]})  # Weekdays only
