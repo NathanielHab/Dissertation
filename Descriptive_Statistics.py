@@ -85,7 +85,8 @@ def plot_frequency_comparison(
     as_percentage: bool = True,
     color1: str = 'steelblue',
     color2: str = 'coral',
-    rename_values: Optional[dict] = None
+    rename_values: Optional[dict] = None,
+    percent_rotation: int = 90
 ) -> None:
 
     def get_values(df):
@@ -142,14 +143,14 @@ def plot_frequency_comparison(
         if height > 0:
             ax.text(bar.get_x() + bar.get_width()/2, height,
                     f' {height:.1f}%' if as_percentage else f'{height:,.0f}',
-                    ha='center', va='bottom', fontsize=7, rotation=90)
+                    ha='center', va='bottom', fontsize=7, rotation=percent_rotation)
 
     for bar in bars2:
         height = bar.get_height()
         if height > 0:
             ax.text(bar.get_x() + bar.get_width()/2, height,
                     f' {height:.1f}%' if as_percentage else f'{height:,.0f}',
-                    ha='center', va='bottom', fontsize=7, rotation=90)
+                    ha='center', va='bottom', fontsize=7, rotation=percent_rotation)
     ax.legend()
 
     if as_percentage:
@@ -418,10 +419,10 @@ def plot_share_comparison(
     plt.show()
 
 
-df = load_nts_data('trip_day_individual_merged.parquet',
-                   column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
-                   columns=['W5', 'TravelWeekDay_B01ID', 'TripPurpose_B04ID', 'MainMode_B04ID', 'TripStartHours', 'TripDisExSW'],
-                   start_year=2023, end_year=2024)
+# df = load_nts_data('trip_day_individual_merged.parquet',
+#                    column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+#                    columns=['W5', 'TravelWeekDay_B01ID', 'TripPurpose_B04ID', 'MainMode_B04ID', 'TripStartHours', 'TripDisExSW'],
+#                    start_year=2023, end_year=2024)
 # plot_frequency(df, column='TravDay', weight_column='W5', title='Weighted Frequency of Trips by Day of the Week', xlabel='Day of the Week')
 
 # Just the table (like SPSS output)
@@ -433,9 +434,9 @@ df = load_nts_data('trip_day_individual_merged.parquet',
 #               weight_column='W5', normalize='row')
 # print(ct)
 
-ct = crosstab(df, row='TravelWeekDay_B01ID', col='MainMode_B04ID', 
-              weight_column='W5')
-print(ct)
+# ct = crosstab(df, row='TravelWeekDay_B01ID', col='MainMode_B04ID', 
+#               weight_column='W5')
+# print(ct)
 
 # Plot it
 # plot_crosstab(df, row='TravelWeekDay_B01ID', col='TripPurpose_B04ID', 

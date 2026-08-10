@@ -88,12 +88,15 @@ def make_mode_share_by_day_comparison(mode: int,
 def make_trips_by_hour_comparison(day: Optional[int] = None,
                                   purpose: Optional[int] = None,
                                   mode: Optional[int] = None,
+                                  weekdays_only: bool = False,
+                                  weekends_only: bool = False,
                                   as_percentage: bool = True):
+    """weekends_only is mutually exclusive with weekdays_only. If both are False, all days are included."""
     df = load_nts_data('trip_day_individual_merged.parquet',
                             column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
                             columns=['TravelWeekDay_B01ID', 'TripStartHours', 
                                      'TripPurpose_B04ID', 'MainMode_B04ID', 
-                                     'W5', 'SurveyYear'],
+                                     'W5', 'SurveyYear', 'TripOrigGOR_B02ID'],
                             start_year=2015)
 
     # Load post-covid data
@@ -103,17 +106,24 @@ def make_trips_by_hour_comparison(day: Optional[int] = None,
     #                         start_year=2023,
     #                         end_year=2024)
 
+    df = df[df['TripOrigGOR_B02ID'] == 7] # London only
     if day is not None:
         df = df[df['TravelWeekDay_B01ID'] == day]
     if purpose is not None:
         df = df[df['TripPurpose_B04ID'] == purpose]
     if mode is not None:
         df = df[df['MainMode_B04ID'] == mode]
+    if weekdays_only:
+        df = df[df['TravelWeekDay_B01ID'].isin([1, 2, 3, 4, 5])]
+    elif weekends_only:
+        df = df[df['TravelWeekDay_B01ID'].isin([6, 7])]
 
     df_pre = df[df['SurveyYear'] <= 2019]
     df_post = df[df['SurveyYear'] >= 2023]
 
     title_suffix = f" on {TravelWeekDay_B01ID_map[day]}s" if day is not None else ''
+    title_suffix = f" on weekdays" if weekdays_only else title_suffix
+    title_suffix = f" on weekends" if weekends_only else title_suffix
     title_suffix += f" for {TripPurpose_B04ID_map[purpose]}" if purpose is not None else ''
     title_suffix += f" by {MainMode_B04ID_map[mode]}" if mode is not None else ''
 
@@ -124,7 +134,7 @@ def make_trips_by_hour_comparison(day: Optional[int] = None,
         column='TripStartHours',
         label1='2015-2019',
         label2='2023-2024',
-        title=f'Trip Start Hour: Pre vs Post COVID{title_suffix}',
+        title=f'Trip Start Hour LONDON: Pre vs Post COVID{title_suffix}',
         xlabel='Hour of Day',
         weight_column='W5',
         as_percentage=as_percentage
@@ -558,7 +568,59 @@ def make_CarFreq_by_NSSEC_comparison():
         rotate_labels=True
     )
 
+def make_trip_purpose_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                            column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                            columns=['TripPurpose_B04ID', 'W5', 'SurveyYear'],
+                            start_year=2015)
 
+    df = df[df['TripPurpose_B04ID'] > 0]
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='TripPurpose_B04ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Trip Purpose Share for All Trips: 2015-2019 vs 2023-2024',
+        xlabel='Trip Purpose',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=TripPurpose_B04ID_map,
+        rotate_labels=False,
+        percent_rotation=0
+    )
+
+def make_trip_mode_comparison():
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                            column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                            columns=['TripOrigGOR_B02ID','MainMode_B04ID', 'W5', 'SurveyYear'],
+                            start_year=2015)
+
+    df = df[df['MainMode_B04ID'] > 0]
+    df = df[df['TripOrigGOR_B02ID'] == 7] # London only
+    df_pre = df[df['SurveyYear'] <= 2019]
+    df_post = df[df['SurveyYear'] >= 2023]
+
+
+    plot_frequency_comparison(
+        df1=df_pre,
+        df2=df_post,
+        column='MainMode_B04ID',
+        label1='Pre-COVID',
+        label2='Post-COVID',
+        title='Mode Share for All Trips in London: 2015-2019 vs 2023-2024',
+        xlabel='Main Mode',
+        weight_column='W5',
+        as_percentage=True,
+        rename_values=MainMode_B04ID_map,
+        rotate_labels=False,
+        percent_rotation=0
+    )
+    
 
 # make_trips_by_day_comparison(purpose=7) # Shows aggregate travel patterns have not changed much pre vs post covid
 # make_trips_by_day_comparison(purpose=1) # Shows that commute patterns have changed pre vs post covid
@@ -569,7 +631,7 @@ def make_CarFreq_by_NSSEC_comparison():
 # make_trips_by_hour_comparison()
 
 
-# make_trips_by_hour_comparison(day=2, purpose=None, mode=None)
+make_trips_by_hour_comparison(weekdays_only=True, mode=3) # Shows that commute patterns have changed pre vs post covid
 #make_main_mode_comparison()
 # make_work_from_home_comparison()
 # make_trips_by_hour_teleworker_comparison()
@@ -585,3 +647,5 @@ def make_CarFreq_by_NSSEC_comparison():
 # make_trips_from_home_mode_comparison()
 # make_trips_to_home_mode_comparison()
 # make_CarFreq_by_NSSEC_comparison()
+# make_trip_purpose_comparison()
+# make_trip_mode_comparison()

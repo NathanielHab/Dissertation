@@ -92,6 +92,7 @@ def make_all_anova_tables(dependent_var='TripTotalTime',
         factor_is_in = None
         if factor == 'MainMode_B04ID':
             label_map = MainMode_B04ID_map
+            factor_is_in = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13]
         elif factor == 'TripPurpose_B04ID':
             label_map = TripPurpose_B04ID_map
         elif factor == 'EthGroupTS_B02ID':
@@ -189,7 +190,7 @@ def create_binary_from_variable(df, column_name, threshold):
 #                                 'TripPurpose_B04ID', 
 #                                 'EthGroupTS_B02ID', 
 #                                 'TravelWeekDay_B01ID'])
-make_all_anova_tables(dependent_var='TripDisExSW', factors=['TravelWeekDay_B01ID'])
+make_all_anova_tables(dependent_var='TripTotalTime', factors=['MainMode_B04ID'])
 
 # make_all_anova_tables(factors=['TripStart_B01ID'], tukey=False)  # Weekdays only
 # make_pre_post_anova_tables(dependent_var='TripTotalTime', 
