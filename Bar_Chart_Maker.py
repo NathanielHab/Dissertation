@@ -2,6 +2,8 @@
 
 from typing import Optional
 
+import numpy as np
+
 from ColumnTypes import INDIVIDUAL_COLUMN_TYPES, TRIP_COLUMN_TYPES, TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, MainMode_B04ID_map, NSSec_B03ID_map, OftHome_B01ID_map, TravelWeekDay_B01ID_map, TripPurpFrom_B01ID_map, TripPurpTo_B01ID_map, TripPurpose_B04ID_map
 from Descriptive_Statistics import plot_frequency_comparison, plot_share_comparison, plot_trips_per_individual_by_demographic
 from Tab_To_Parquet import load_nts_data
@@ -260,12 +262,13 @@ def make_trips_by_purpose_teleworker_comparison():
         rotate_labels=True
     )
 
-def make_commutes_by_day_teleworker_comparison():
+def make_commutes_by_day_teleworker_comparison(WFH=True):
+    """makes a comparison of commute days for teleworkers OR non-teleworkers, pre and post covid"""
     df = load_nts_data('trip_day_individual_merged.parquet',
                         column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
                         columns=['TripPurpose_B04ID', 'OftHome_B01ID',
-                                 'TravelWeekDay_B01ID', 'W5'],
-                        start_year=2023,
+                                 'TravelWeekDay_B01ID', 'W5', 'SurveyYear'],
+                        start_year=2015,
                         end_year=2024)
     
     
@@ -278,24 +281,47 @@ def make_commutes_by_day_teleworker_comparison():
     df_teleworkers = df[df['OftHome_B01ID'].isin(TELEWORKER_CODES)]
     df_non_teleworkers = df[df['OftHome_B01ID'].isin(NON_TELEWORKER_CODES)]
 
-    # # Split pre/post covid
-    # df_pre = df_teleworkers[df_teleworkers['SurveyYear'] <= 2019]
-    # df_post = df_teleworkers[df_teleworkers['SurveyYear'] >= 2023]
+    if WFH:
+        # Split pre/post covid, teleworkers
+        df_pre = df_teleworkers[df_teleworkers['SurveyYear'] <= 2019]
+        df_post = df_teleworkers[df_teleworkers['SurveyYear'] >= 2023]
 
-    # Plot
-    plot_frequency_comparison(
-        df1=df_non_teleworkers,
-        df2=df_teleworkers,
-        column='TravelWeekDay_B01ID',
-        label1='Non-Teleworkers',
-        label2='Teleworkers',
-        title='Commute Days for Non-Teleworkers vs Teleworkers: 2023-2024',
-        xlabel='Day of Week',
-        weight_column='W5',
-        as_percentage=True,
-        rename_values=TravelWeekDay_B01ID_map,
-        rotate_labels=False
-    )
+        # Plot
+        plot_frequency_comparison(
+            df1=df_pre,
+            df2=df_post,
+            column='TravelWeekDay_B01ID',
+            label1='Pre-COVID',
+            label2='Post-COVID',
+            title='Commute Days for Teleworkers: 2015-2019 vs 2023-2024',
+            xlabel='Day of Week',
+            weight_column='W5',
+            as_percentage=True,
+            rename_values=TravelWeekDay_B01ID_map,
+            rotate_labels=False
+        )
+
+    else:
+        # Split pre/post covid, non-teleworkers
+        df_pre = df_non_teleworkers[df_non_teleworkers['SurveyYear'] <= 2019]
+        df_post = df_non_teleworkers[df_non_teleworkers['SurveyYear'] >= 2023]
+
+        # Plot
+        plot_frequency_comparison(
+            df1=df_pre,
+            df2=df_post,
+            column='TravelWeekDay_B01ID',
+            label1='Pre-COVID',
+            label2='Post-COVID',
+            title='Commute Days for Non-Teleworkers: 2015-2019 vs 2023-2024',
+            xlabel='Day of Week',
+            weight_column='W5',
+            as_percentage=True,
+            rename_values=TravelWeekDay_B01ID_map,
+            rotate_labels=False
+        )
+    
+        
 
 def make_trips_by_women_by_purpose_comparison():
     df_pre = load_nts_data('trip_day_individual_merged.parquet',
@@ -631,12 +657,12 @@ def make_trip_mode_comparison():
 # make_trips_by_hour_comparison()
 
 
-make_trips_by_hour_comparison(weekdays_only=True, mode=3) # Shows that commute patterns have changed pre vs post covid
+# make_trips_by_hour_comparison(weekdays_only=True, mode=3) # Shows that commute patterns have changed pre vs post covid
 #make_main_mode_comparison()
 # make_work_from_home_comparison()
 # make_trips_by_hour_teleworker_comparison()
 # make_trips_by_purpose_teleworker_comparison()
-# make_commutes_by_day_teleworker_comparison()
+# make_commutes_by_day_teleworker_comparison(WFH=False)
 # make_trips_by_women_by_purpose_comparison()
 # make_trip_purpose_by_gender_pre_covid_comparison()
 # make_trip_purpose_by_gender_post_covid_comparison()

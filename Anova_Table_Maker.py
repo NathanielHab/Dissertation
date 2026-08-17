@@ -68,7 +68,8 @@ def run_anova(dependent_var, factor_var, df_original=None, factor_is_in=None, we
     return results
 
 
-def make_all_anova_tables(dependent_var='TripTotalTime',
+def make_all_anova_tables(df = None,
+                          dependent_var='TripTotalTime',
                           factors = ['NSSec_B03ID'],
                           binary_WFH=False,
                           filter_characteristics=None,
@@ -78,9 +79,10 @@ def make_all_anova_tables(dependent_var='TripTotalTime',
     """
     columns_needed = ['W5', 'SurveyYear', dependent_var] + factors + (list(filter_characteristics.keys()) if filter_characteristics else [])
     columns_needed = list(set(columns_needed))  # Ensure unique columns
-    df = load_nts_data('trip_day_individual_merged.parquet',
-                    column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
-                    columns=columns_needed)
+    if df is None:
+        df = load_nts_data('trip_day_individual_merged.parquet',
+                        column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                        columns=columns_needed)
     
     name=''
     if filter_characteristics is not None:
@@ -92,7 +94,7 @@ def make_all_anova_tables(dependent_var='TripTotalTime',
         factor_is_in = None
         if factor == 'MainMode_B04ID':
             label_map = MainMode_B04ID_map
-            factor_is_in = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13]
+            factor_is_in = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13] #omit non-local bus
         elif factor == 'TripPurpose_B04ID':
             label_map = TripPurpose_B04ID_map
         elif factor == 'EthGroupTS_B02ID':
@@ -190,7 +192,25 @@ def create_binary_from_variable(df, column_name, threshold):
 #                                 'TripPurpose_B04ID', 
 #                                 'EthGroupTS_B02ID', 
 #                                 'TravelWeekDay_B01ID'])
-make_all_anova_tables(dependent_var='TripTotalTime', factors=['MainMode_B04ID'])
+
+def make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotalTime'):
+    df = load_nts_data('trip_day_individual_merged.parquet',
+                            column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
+                            columns=['W5', 'SurveyYear', 'TripTotalTime', 'TripDisExSW',
+                                     'NSSec_B03ID', 'Sex_B01ID','EthGroupTS_B02ID',
+                                     'Age_B04ID', 'TravelWeekDay_B01ID', 'TripPurpose_B04ID',
+                                     'OftHome_B01ID', 'TripOrigGOR_B02ID'])
+    df = df[df['TripOrigGOR_B02ID']<=9] # England only
+    df['London_Binary'] = df['TripOrigGOR_B02ID'].apply(lambda x: 1 if x == 7 else 2)
+    make_all_anova_tables(df=df, dependent_var=dependent_var, 
+                        #   factors=['NSSec_B03ID', 'Age_B04ID', 'Sex_B01ID', 'OftHome_B01ID', 'London_Binary'],
+                        factors = ['EthGroupTS_B02ID']
+                          filter_characteristics={'TravelWeekDay_B01ID': days,
+                                                  'TripPurpose_B04ID': [1]}, tukey=False, binary_WFH=True)  # Weekdays only, commuting trips only
+
+make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotalTime')
+make_commute_weekday_demographic_tables(days = [2,3,4], dependent_var='TripTotalTime')
+make_commute_weekday_demographic_tables(days = [5], dependent_var='TripTotalTime')
 
 # make_all_anova_tables(factors=['TripStart_B01ID'], tukey=False)  # Weekdays only
 # make_pre_post_anova_tables(dependent_var='TripTotalTime', 

@@ -454,3 +454,17 @@ TripOrigGOR_B02ID_map = {
     -9: 'DNA',
     -10: 'DEAD',
 }
+
+Age_B04ID_map = {
+    1: '0 - 4 years',
+    2: '5 - 10 years',
+    3: '11 - 16 years',
+    4: '17 - 20 years',
+    5: '21 - 29 years',
+    6: '30 - 39 years',
+    7: '40 - 49 years',
+    8: '50 - 59 years',
+    9: '60 years +',
+    -8: 'NA',
+    -10: 'DEAD'
+}
