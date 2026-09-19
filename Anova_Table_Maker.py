@@ -1,4 +1,5 @@
 from Anova import weighted_one_way_anova, print_anova_csv
+from Bar_Chart_Maker import END_YEAR_post, END_YEAR_pre, START_YEAR_post, START_YEAR_pre
 from ColumnTypes import TRIP_DAY_INDIVIDUAL_COLUMN_TYPES, EthGroupTS_B02ID_map, MainMode_B04ID_map, NSSec_B03ID_map, OftHome_B01ID_map, OftHome_Binary_map, TravelWeekDay_B01ID_map, TripOrigGOR_B02ID_map, TripPurpose_B04ID_map
 from Tab_To_Parquet import load_nts_data
 
@@ -116,8 +117,8 @@ def make_all_anova_tables(df = None,
             factor_var=factor,
             factor_is_in=factor_is_in,
             label_map=label_map,
-            start_year=2023,
-            end_year=2024,
+            start_year=START_YEAR_post,
+            end_year=END_YEAR_post,
             to_print=True,
             binary_WFH=binary_WFH,
             name=name,
@@ -130,8 +131,8 @@ def make_all_anova_tables(df = None,
             factor_var=factor,
             factor_is_in=factor_is_in,
             label_map=label_map,
-            start_year=2015,
-            end_year=2019,
+            start_year=START_YEAR_pre,
+            end_year=END_YEAR_pre,
             to_print=True,
             binary_WFH=binary_WFH,
             name=name,
@@ -204,7 +205,7 @@ def make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotal
     df['London_Binary'] = df['TripOrigGOR_B02ID'].apply(lambda x: 1 if x == 7 else 2)
     make_all_anova_tables(df=df, dependent_var=dependent_var, 
                         #   factors=['NSSec_B03ID', 'Age_B04ID', 'Sex_B01ID', 'OftHome_B01ID', 'London_Binary'],
-                        factors = ['EthGroupTS_B02ID']
+                        factors = ['EthGroupTS_B02ID'],
                           filter_characteristics={'TravelWeekDay_B01ID': days,
                                                   'TripPurpose_B04ID': [1]}, tukey=False, binary_WFH=True)  # Weekdays only, commuting trips only
 
