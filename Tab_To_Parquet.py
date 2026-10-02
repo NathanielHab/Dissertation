@@ -140,14 +140,24 @@ def create_parquet_from_tab(filename: str, column_types: dict) -> None:
     df.to_parquet(DATA_DIR / parquet_filename, index=False)
     print(f"Saved {parquet_filename} in {time.time() - START_TIME} seconds")
 
-# Load trip data
-# df_trip_day = load_nts_data('trip_day_merged.parquet', column_types=TRIP_DAY_COLUMN_TYPES)  # Load first 50000 rows for testing
-# df_individual = load_nts_data('individual_eul_2002-2024.parquet', column_types=INDIVIDUAL_COLUMN_TYPES)  # Load all rows
-# print("Loaded trip and individual data in {} seconds".format(time.time() - START_TIME))
-# df = merge_nts_data(df_trip_day, df_individual, on='IndividualID')
-# print("Merged trip and individual data in {} seconds".format(time.time() - START_TIME))
-# df.to_parquet(DATA_DIR / 'trip_day_individual_merged.parquet', index=False)
-# print(f"Saved merged_data.parquet in {time.time() - START_TIME} seconds")
+
+def create_parquet_for_trip_day_merged():
+    df_trip = load_nts_data('trip_eul_2002-2024.tab', column_types=TRIP_COLUMN_TYPES)
+    df_day = load_nts_data('day_eul_2002-2024.tab', column_types=DAY_COLUMN_TYPES)
+    print("Loaded trip and day data in {} seconds".format(time.time() - START_TIME))
+    df_trip_day = merge_nts_data(df_trip, df_day, on='DayID')
+    print("Merged trip and day data in {} seconds".format(time.time() - START_TIME))
+    df_trip_day.to_parquet(DATA_DIR / 'trip_day_merged.parquet', index=False)
+    print(f"Saved trip_day_merged.parquet in {time.time() - START_TIME} seconds")
+
+def create_parquet_for_trip_day_individual_merged():
+    df_trip_day = load_nts_data('trip_day_merged.parquet', column_types=TRIP_DAY_COLUMN_TYPES)
+    df_individual = load_nts_data('individual_eul_2002-2024.parquet', column_types=INDIVIDUAL_COLUMN_TYPES)  # Load all rows
+    print("Loaded trip and individual data in {} seconds".format(time.time() - START_TIME))
+    df = merge_nts_data(df_trip_day, df_individual, on='IndividualID')
+    print("Merged trip and individual data in {} seconds".format(time.time() - START_TIME))
+    df.to_parquet(DATA_DIR / 'trip_day_individual_merged.parquet', index=False)
+    print(f"Saved merged_data.parquet in {time.time() - START_TIME} seconds")
 
 
 # create_parquet_from_tab('individual_eul_2002-2024.tab', column_types=INDIVIDUAL_COLUMN_TYPES)

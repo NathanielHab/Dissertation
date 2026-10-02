@@ -1,5 +1,6 @@
 from Anova_Table_Maker import make_all_anova_tables, make_tripDist_tables, make_tripTime_tables
 from Bar_Chart_Maker import make_commutes_by_day_teleworker_comparison, make_trip_mode_comparison,make_trip_mode_comparison_London, make_trip_purpose_comparison, make_trips_by_day_comparison, make_trips_by_hour_comparison, make_trips_by_hour_comparison_London
+from Tab_To_Parquet import create_parquet_for_trip_day_individual_merged, create_parquet_for_trip_day_merged
 
 
 """
@@ -23,6 +24,20 @@ There is a lot of code in other scripts that was ultimately not used in the diss
 I wouldn't trust the regression code...
 The Bar_Chart_Maker.py is the easiest to play around with (see commented out code at the bottom of that file)
 """
+
+
+"""
+STEP 1: CREATE PARQUET FILES FROM TAB FILES (ONE-TIME PROCESS)
+
+Run the following functions to create parquet files from the tab files.
+This is a one-time process, and the parquet files will be saved in the 'data' directory.
+Run these one at a time, as they take a long time and use a lot of ram.
+"""
+## RUN this first (only need to run once) to create parquet files from the tab files.
+# create_parquet_for_trip_day_merged() 
+
+## RUN this second (only need to run once) to create parquet files from the merged trip and individual data.
+# create_parquet_for_trip_day_individual_merged()
 
 
 """RQ1: How have day-of-week travel patterns changed post-COVID?"""
