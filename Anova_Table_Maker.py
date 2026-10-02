@@ -187,12 +187,12 @@ def create_binary_from_variable(df, column_name, threshold):
     """
     return df[column_name].apply(lambda x: 1 if x <= threshold else (2 if x > threshold else -1))
 
-# make_all_anova_tables(factors=['NSSec_B03ID',
-#                                 'TripOrigGOR_B02ID',
-#                                 'MainMode_B04ID', 
-#                                 'TripPurpose_B04ID', 
-#                                 'EthGroupTS_B02ID', 
-#                                 'TravelWeekDay_B01ID'])
+make_all_anova_tables(factors=['NSSec_B03ID',
+                                'TripOrigGOR_B02ID',
+                                'MainMode_B04ID', 
+                                'TripPurpose_B04ID', 
+                                'EthGroupTS_B02ID', 
+                                'TravelWeekDay_B01ID'], tukey=False)
 
 def make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotalTime'):
     df = load_nts_data('trip_day_individual_merged.parquet',
@@ -209,10 +209,23 @@ def make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotal
                           filter_characteristics={'TravelWeekDay_B01ID': days,
                                                   'TripPurpose_B04ID': [1]}, tukey=False, binary_WFH=True)  # Weekdays only, commuting trips only
 
-make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotalTime')
-make_commute_weekday_demographic_tables(days = [2,3,4], dependent_var='TripTotalTime')
-make_commute_weekday_demographic_tables(days = [5], dependent_var='TripTotalTime')
 
+def make_tripTime_tables():
+    """makes tables for trip time by demographic factors for commuting trips on weekdays"""
+    make_commute_weekday_demographic_tables(days = [1], dependent_var='TripTotalTime')
+    make_commute_weekday_demographic_tables(days = [2,3,4], dependent_var='TripTotalTime')
+    make_commute_weekday_demographic_tables(days = [5], dependent_var='TripTotalTime')
+
+def make_tripDist_tables():
+    """makes tables for trip distance by demographic factors for commuting trips on weekdays"""
+    make_commute_weekday_demographic_tables(days = [1], dependent_var='TripDisExSW')
+    make_commute_weekday_demographic_tables(days = [2,3,4], dependent_var='TripDisExSW')
+    make_commute_weekday_demographic_tables(days = [5], dependent_var='TripDisExSW')
+
+
+
+
+# For testing purposes, you can uncomment the following lines to run specific ANOVA analyses:
 # make_all_anova_tables(factors=['TripStart_B01ID'], tukey=False)  # Weekdays only
 # make_pre_post_anova_tables(dependent_var='TripTotalTime', 
 #                            characteristics={'TravelWeekDay_B01ID': [5]})  # Weekdays only

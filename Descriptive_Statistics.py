@@ -419,6 +419,9 @@ def plot_share_comparison(
     plt.show()
 
 
+
+
+# For testing and demonstration purposes, you can uncomment the following lines to load data and generate plots.
 # df = load_nts_data('trip_day_individual_merged.parquet',
 #                    column_types=TRIP_DAY_INDIVIDUAL_COLUMN_TYPES,
 #                    columns=['W5', 'TravelWeekDay_B01ID', 'TripPurpose_B04ID', 'MainMode_B04ID', 'TripStartHours', 'TripDisExSW'],
