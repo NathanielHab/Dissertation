@@ -13,6 +13,8 @@ The script will load the data, apply the necessary column types, and generate th
 CRUCIAL: SET START AND END YEARS in Bar_Chart_Maker.py to select the year range. 
 Dissertation uses 2015-2019 as pre-covid and 2023-2024 as post-covid. Must have 2002 <= Start <= End.
 
+Requirements are found in requirements.txt. Install them using pip if you haven't already.
+
 Uncomment funtions as needed. 
 
 Running all the functions at once will take very long and print too much to the screen.
